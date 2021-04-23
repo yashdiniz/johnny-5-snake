@@ -1,4 +1,4 @@
-const {Board, Stepper} = require("johnny-five");
+const {Board, Stepper, Led} = require("johnny-five");
 const board = new Board();
 const { stepsPerRev, limits, dirPin, stepPin } = require('./config');
 
@@ -24,15 +24,20 @@ board.on("ready", () => {
 
   // Set stepper to 180 RPM, counter-clockwise with acceleration and deceleration
   stepper.rpm(180).ccw().accel(1600).decel(1600);
-  
-  // testing the motor to see if it drives 18 steps.
-  stepper.step(limits, () => {
-    console.log("Done moving CCW");
-    // once first movement is done, make limits steps clockwise at previously
-    // defined speed, accel, and decel by passing an object into stepper.step
-    stepper.step({
-      steps: limits,
-      direction: Stepper.DIRECTION.CW
-    }, () => console.log("Done moving CW"));
-  });
+
+  let spinning = false;
+  const step = (steps, cw=true) => {
+    if (!spinning) {
+      spinning = true;
+      stepper.step({
+        steps,
+        direction: cw ? Stepper.DIRECTION.CW : Stepper.DIRECTION.CCW,
+      }, () => {
+        spinning = false;
+        console.log(`Done moving ${cw ? 'CW' : 'CCW'}`);
+      });
+    } else console.log("Already spinning...");
+  }
+
+  module.exports = { step };
 });

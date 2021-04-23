@@ -1,4 +1,4 @@
-const stepsPerRev = 200;    // 1 rotation = 360 deg
+const stepsPerRev = 200;    // 1 revolution = 360 deg
 const limits = 20;  // the number of steps to limit the stepper to...
 
 const dirPin = 11;
