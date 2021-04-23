@@ -26,15 +26,19 @@ board.on("ready", () => {
   stepper.rpm(180).ccw().accel(1600).decel(1600);
 
   let spinning = false;
-  const step = (steps, cw=true) => {
+  /**
+   * Positive is CW, and negative is CCW.
+   * @param {number} steps Signed number which denotes steps.
+   */
+  const step = (steps) => {
     if (!spinning) {
       spinning = true;
       stepper.step({
-        steps,
-        direction: cw ? Stepper.DIRECTION.CW : Stepper.DIRECTION.CCW,
+        steps: Math.abs(steps),
+        direction: steps > 0 ? Stepper.DIRECTION.CW : Stepper.DIRECTION.CCW,
       }, () => {
         spinning = false;
-        console.log(`Done moving ${cw ? 'CW' : 'CCW'}`);
+        console.log(`Done moving ${steps > 0 ? 'CW' : 'CCW'}`);
       });
     } else console.log("Already spinning...");
   }
