@@ -41,6 +41,13 @@ class Motor {
     .decel(config.decel || deceleration); // and the deceleration.
   }
 
+  /**
+   * Spins the motor a fixed number of steps. 
+   * The sign of the number entered determines the motor spin direction.
+   * Enter positive number for clockwise, negative number for anti-clockwise.
+   * @param {number} steps The number of steps to spin.
+   * @returns {Promise} Resolves on success, rejects if already spinning.
+   */
   async step(steps) {
     let direction = steps > 0 ?               // if steps is positive
                       Stepper.DIRECTION.CW    // spin the motor clockwise
