@@ -1,47 +1,70 @@
-const {Board, Stepper, Led} = require("johnny-five");
-const board = new Board();
-const { stepsPerRev, limits, dirPin, stepPin } = require('./config');
+
+/**
+ * In order to use the Stepper class, your board must be flashed with
+ * either of the following:
+ *
+ * - AdvancedFirmata https://github.com/soundanalogous/AdvancedFirmata
+ * - ConfigurableFirmata https://github.com/firmata/arduino/releases/tag/v2.6.2
+ *
+ */
+const { Stepper } = require("johnny-five");
+const { stepsPerRev, rpm, acceleration, deceleration } = require('./config');
+
 
 // Reference: http://johnny-five.io/examples/stepper-driver/
+// Reference: https://www.instructables.com/Stepper-Motor-With-Arduino-UNO/
 
-board.on("ready", () => {
+class Motor {
+  stepper;  // the stepper motor instance referred to here 
+  spinning = false; // a lock to establish critical section(i.e. already spinning) for motor.
+
   /**
-   * In order to use the Stepper class, your board must be flashed with
-   * either of the following:
-   *
-   * - AdvancedFirmata https://github.com/soundanalogous/AdvancedFirmata
-   * - ConfigurableFirmata https://github.com/firmata/arduino/releases/tag/v2.6.2
-   *
+   * 
+   * @param {number} step Step pin connected to stepper driver.
+   * @param {number} dir Dir pin connected to stepper driver.
+   * @param {object} config (optional) configuration variables.
    */
-  const stepper = new Stepper({
-    type: Stepper.TYPE.DRIVER,
-    stepsPerRev,
-    pins: {
-      step: stepPin,
-      dir: dirPin,
-    }
-  });
+  constructor(step, dir, config) {
+    if(typeof step !== 'number' && typeof dir !== 'number')
+      throw 'step and dir values expect pin numbers.';
+    
+    this.stepper = new Stepper({
+      type: Stepper.TYPE.DRIVER,
+      stepsPerRev: config.stepsPerRev || stepsPerRev,
+      pins: { step, dir, }
+    });
 
-  // Set stepper to 180 RPM, counter-clockwise with acceleration and deceleration
-  stepper.rpm(180).ccw().accel(1600).decel(1600);
-
-  let spinning = false;
-  /**
-   * Positive is CW, and negative is CCW.
-   * @param {number} steps Signed number which denotes steps.
-   */
-  const step = (steps) => {
-    if (!spinning) {
-      spinning = true;
-      stepper.step({
-        steps: Math.abs(steps),
-        direction: steps > 0 ? Stepper.DIRECTION.CW : Stepper.DIRECTION.CCW,
-      }, () => {
-        spinning = false;
-        console.log(`Done moving ${steps > 0 ? 'CW' : 'CCW'}`);
-      });
-    } else console.log("Already spinning...");
+    this.stepper
+    .cw()                                 // Set the default spin to clockwise.
+    .rpm(config.rpm || rpm)               // Set the Motor RPM,
+    .accel(config.accel || acceleration)  // the acceleration,
+    .decel(config.decel || deceleration); // and the deceleration.
   }
 
-  module.exports = { step };
-});
+  async step(steps) {
+    let direction = steps > 0 ?               // if steps is positive
+                      Stepper.DIRECTION.CW    // spin the motor clockwise
+                    : Stepper.DIRECTION.CCW;  // else spin counter-clockwise
+    
+    return await new Promise((resolve, reject) => {
+      if (!this.spinning) { // if not already spinning,
+        this.spinning = true; // enter critical section (motor now spinning)
+  
+        this.stepper.step(
+        {
+          steps: Math.abs(steps), // spin the motor for steps
+          direction,              // in the direction determined above
+        }, 
+        () => {                   // after successful spinning
+          this.spinning = false;  // leave critical section (motor done spinning)
+          resolve(steps > 0);     // inform the user
+        });
+      } 
+      else {
+        reject('Already spinning');
+      }
+    });
+  }
+}
+
+module.exports = { Motor };
