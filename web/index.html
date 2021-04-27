@@ -1,0 +1,21 @@
+<script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
+<script>
+    var socket = io.connect('http://localhost:8080');
+	socket.on('connect', function(data) {
+    	socket.emit('hey', 'random data');
+        function step(c) {
+            socket.emit('motor1:step', c);
+        }
+
+        window.onload = () => {
+            document.getElementById('stepCW').onclick(() => {
+                step('cw');
+            });
+            document.getElementById('stepCCW').onclick(() => {
+                step('ccw');
+            });
+        };
+    });
+</script>
+<button id="stepCW">Step CW</button>
+<button id="stepCCW">Step CCW</button>

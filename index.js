@@ -8,7 +8,7 @@
  *
  */
 const { Stepper } = require("johnny-five");
-const { stepsPerRev, rpm, acceleration, deceleration } = require('./config');
+const { stepsPerRev, rpm, acceleration, deceleration, limits } = require('./config');
 
 
 // Reference: http://johnny-five.io/examples/stepper-driver/
@@ -17,6 +17,7 @@ const { stepsPerRev, rpm, acceleration, deceleration } = require('./config');
 class Motor {
   stepper;  // the stepper motor instance referred to here 
   spinning = false; // a lock to establish critical section(i.e. already spinning) for motor.
+  steps;
 
   /**
    * 
@@ -24,7 +25,7 @@ class Motor {
    * @param {number} dir Dir pin connected to stepper driver.
    * @param {object} config (optional) configuration variables.
    */
-  constructor(step, dir, config) {
+  constructor(step, dir, config={}) {
     if(typeof step !== 'number' && typeof dir !== 'number')
       throw 'step and dir values expect pin numbers.';
     
@@ -49,28 +50,39 @@ class Motor {
    * @returns {Promise} Resolves on success, rejects if already spinning.
    */
   async step(steps) {
-    let direction = steps > 0 ?               // if steps is positive
+    this.steps = steps;
+    const stepper = this.stepper, 
+          Spinning = () => this.Spinning(), 
+          setSpinning = (value) => this.setSpinning(value);
+    return await (new Promise((resolve, reject) => {
+      let direction = steps > 0 ?               // if _steps is positive
                       Stepper.DIRECTION.CW    // spin the motor clockwise
                     : Stepper.DIRECTION.CCW;  // else spin counter-clockwise
-    
-    return await new Promise((resolve, reject) => {
-      if (!this.spinning) { // if not already spinning,
-        this.spinning = true; // enter critical section (motor now spinning)
+      if (!Spinning()) { // if not already spinning,
+        setSpinning(true); // enter critical section (motor now spinning)
   
-        this.stepper.step(
+        stepper.step(
         {
-          steps: Math.abs(steps), // spin the motor for steps
+          steps: Math.abs(steps), // spin the motor for _steps
           direction,              // in the direction determined above
         }, 
-        () => {                   // after successful spinning
-          this.spinning = false;  // leave critical section (motor done spinning)
-          resolve(steps > 0);     // inform the user
+        () => {                     // after successful spinning
+          setSpinning(false);  // leave critical section (motor done spinning)
+          resolve(steps);
         });
       } 
       else {
-        reject('Already spinning');
+        reject('Already spinning.');
       }
-    });
+    }));
+  }
+
+  setSpinning(value) {
+    return (this.spinning = value);
+  }
+
+  Spinning() {
+    return this.spinning;
   }
 }
 
