@@ -15,17 +15,23 @@ const board = new Board();
 board.on("ready", () => {
     console.log('Board ready');
     const motor1 = new Motor(12, 11);
-    let connected = false;
+    let idConnected = ""; // holds the ID of the active room...
 
     io.on('connection', socket => {
+        if (!idConnected) idConnected = socket.id;  // if first connection, save the room ID
+        else socket.disconnect();   // disconnect every subsequent request which does not match
+        console.log(socket.id, 'connected:', socket.connected, 'at', socket.conn.remoteAddress);
+
         socket.on('motor1:step', (data) => {
-            console.log('motor1:step', data);
+            console.log(socket.id, 'motor1:step', data);
             if (data === 'cw') motor1.step(1);
             if (data === 'ccw') motor1.step(-1);
         });
-        socket.on('hey', (data) => {
-            if (!connected) connected = true;
-            else socket.close();
+
+        socket.on('disconnect', () => {
+            // if the connected room is closing, forget the connection
+            if(socket.id === idConnected) idConnected = "";
+            console.log(socket.id, 'attempted to close connection at', socket.conn.remoteAddress);
         });
     });
 
