@@ -20,12 +20,16 @@
                 // return page elements back to normal on successful connection.
                 document.querySelector('#ui').style.opacity = 1;
                 
-                function step(c) {
-                    socket.emit('motor1:step', c);
+                function step(motor, c) {
+                    socket.emit(`${motor}:step`, c);
                 }
 
-                document.querySelector('#stepCW').onclick = () => step('cw');
-                document.querySelector('#stepCCW').onclick = () => step('ccw');
+                // TODO: give keybind to the buttons!
+                document.querySelector('#stepCW1').onclick = () => step('motor1', 'cw');
+                document.querySelector('#stepCCW1').onclick = () => step('motor1', 'ccw');
+
+                document.querySelector('#stepCW2').onclick = () => step('motor2', 'cw');
+                document.querySelector('#stepCCW2').onclick = () => step('motor2', 'ccw');
 
                 socket.on('disconnect', () => {
                     // show the error message on server-side socket disconnect.
@@ -45,8 +49,13 @@
     <div id='ui'>
         <fieldset>
             <legend>Motor 1</legend>
-            <button id="stepCW">Step CW</button>
-            <button id="stepCCW">Step CCW</button>
+            <button id="stepCW1">Step CW</button>
+            <button id="stepCCW1">Step CCW</button>
+        </fieldset>
+        <fieldset>
+            <legend>Motor 2</legend>
+            <button id="stepCW2">Step CW</button>
+            <button id="stepCCW2">Step CCW</button>
         </fieldset>
     </div>
 </body>
