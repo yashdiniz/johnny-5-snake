@@ -14,10 +14,23 @@ const { stepsPerRev, rpm, acceleration, deceleration, limits } = require('./conf
 // Reference: http://johnny-five.io/examples/stepper-driver/
 // Reference: https://www.instructables.com/Stepper-Motor-With-Arduino-UNO/
 
+const stepperStep = (stepper, steps) =>  {
+  return new Promise((resolve) => {
+    let direction = steps > 0 ?             // if _steps is positive
+                    Stepper.DIRECTION.CW    // spin the motor clockwise
+                  : Stepper.DIRECTION.CCW;  // else spin counter-clockwise
+
+    stepper.step({
+      steps: Math.abs(steps), // spin the motor for _steps
+      direction               // in the direction determined above
+    },
+    () => resolve(steps));
+  });
+};
+
 class Motor {
   stepper;  // the stepper motor instance referred to here 
   spinning = false; // a lock to establish critical section(i.e. already spinning) for motor.
-  steps;
 
   /**
    * 
@@ -38,8 +51,8 @@ class Motor {
     this.stepper
     .cw()                                 // Set the default spin to clockwise.
     .rpm(config.rpm || rpm)               // Set the Motor RPM,
-    .accel(config.accel || acceleration)  // the acceleration,
-    .decel(config.decel || deceleration); // and the deceleration.
+    // .accel(config.accel || acceleration)  // the acceleration,
+    // .decel(config.decel || deceleration); // and the deceleration.
   }
 
   /**
@@ -50,31 +63,11 @@ class Motor {
    * @returns {Promise} Resolves on success, rejects if already spinning.
    */
   async step(steps) {
-    this.steps = steps;
-    const stepper = this.stepper, 
-          Spinning = () => this.Spinning(), 
-          setSpinning = (value) => this.setSpinning(value);
-    return await (new Promise((resolve, reject) => {
-      let direction = steps > 0 ?               // if _steps is positive
-                      Stepper.DIRECTION.CW    // spin the motor clockwise
-                    : Stepper.DIRECTION.CCW;  // else spin counter-clockwise
-      if (!Spinning()) { // if not already spinning,
-        setSpinning(true); // enter critical section (motor now spinning)
-  
-        stepper.step(
-        {
-          steps: Math.abs(steps), // spin the motor for _steps
-          direction,              // in the direction determined above
-        }, 
-        () => {                     // after successful spinning
-          setSpinning(false);  // leave critical section (motor done spinning)
-          resolve(steps);
-        });
-      } 
-      else {
-        reject('Already spinning.');
-      }
-    }));
+    if(!this.Spinning()) {      // if not already spinning
+      this.setSpinning(true);   // enter critical section (motor now spinning)
+      return await stepperStep(this.stepper, steps)  // actually start the motor spinning
+      .then(() => this.setSpinning(false));   // leave critical section after spinning
+    } else throw 'Already spinning';  // throw if already spinning
   }
 
   setSpinning(value) {
