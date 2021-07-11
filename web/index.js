@@ -10,44 +10,43 @@ var io = require('socket.io')(server, {
 });
 
 const { Board } = require('johnny-five');
-const board = new Board();
+const board = new Board({
+    repl: true,
+    timeout: 10000,
+});
 
 board.on("ready", () => {
     console.log('Board ready');
-    const m1 = { stepPin: 12, dirPin: 11, event: 'motor1:step' };
-    const m2 = { stepPin: 10, dirPin: 9,  event: 'motor2:step' };
-    const motor1 = new Motor(m1.stepPin, m1.dirPin);
-    const motor2 = new Motor(m2.stepPin, m2.dirPin);
+    const motor = [ { motor: new Motor(10, 9), event: 'motorA:step' }, 
+                    { motor: new Motor(12, 11), event: 'motorB:step' }, 
+                    { motor: new Motor(8, 7), event: 'motorC:step' } ];
     let idConnected = ""; // holds the ID of the active room...
 
-    io.on('connection', socket => {
+    io.on('connection', async socket => {
         if (!idConnected) idConnected = socket.id;  // if first connection, save the room ID
         else socket.disconnect();   // disconnect every subsequent request which does not match
-        console.log(socket.id, 'connected:', socket.connected, 'at', socket.conn.remoteAddress);
+        console.log(new Date(), socket.id, 'connected:', socket.connected, 'at', socket.conn.remoteAddress);
 
-        socket.on(m1.event, (data) => {
-            console.log(socket.id, m1.event, data);
-            if (data === 'cw') motor1.step(1);
-            if (data === 'ccw') motor1.step(-1);
-        });
-
-        socket.on(m2.event, (data) => {
-            console.log(socket.id, m2.event, data);
-            if (data === 'cw') motor2.step(1);
-            if (data === 'ccw') motor2.step(-1);
-        });
+        try {
+            // create scoket events for each motor in the array above.
+            for(let i = 0; i < motor.length; i++)
+                socket.on(motor[i].event, async (data) => {
+                    // console.log(new Date(), socket.id, motor[i].event, data);
+                    if (data === 'cw') await motor[i].motor.step(1);
+                    if (data === 'ccw') await motor[i].motor.step(-1);
+                });
+        } catch(e) {
+            console.error(e);
+        }
 
         socket.on('disconnect', () => {
             // if the connected room is closing, forget the connection
             if(socket.id === idConnected) idConnected = "";
-            console.log(socket.id, 'attempted to close connection at', socket.conn.remoteAddress);
+            console.log(new Date(), socket.id, 'attempted to close connection at', socket.conn.remoteAddress);
         });
     });
 
-    app.get('/', (req, res) => {
-        const p = path.join(__dirname, 'index.html');
-        res.sendFile(p);
-    });
+    app.use('/', express.static(__dirname));
 
     server.listen(8080, () => {
         console.log('Listening now');

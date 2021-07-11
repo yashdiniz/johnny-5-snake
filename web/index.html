@@ -5,7 +5,7 @@
             padding: 20px;
         }
     </style>
-    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"
+    <script src="/socket.io.min.js"
         integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
         crossorigin="anonymous"></script>
     <script>
@@ -25,11 +25,14 @@
                 }
 
                 // TODO: give keybind to the buttons!
-                document.querySelector('#stepCW1').onclick = () => step('motor1', 'cw');
-                document.querySelector('#stepCCW1').onclick = () => step('motor1', 'ccw');
+                document.querySelector('#stepCWA').onclick = () => step('motorA', 'cw');
+                document.querySelector('#stepCCWA').onclick = () => step('motorA', 'ccw');
 
-                document.querySelector('#stepCW2').onclick = () => step('motor2', 'cw');
-                document.querySelector('#stepCCW2').onclick = () => step('motor2', 'ccw');
+                document.querySelector('#stepCWB').onclick = () => step('motorB', 'cw');
+                document.querySelector('#stepCCWB').onclick = () => step('motorB', 'ccw');
+
+                document.querySelector('#stepCWC').onclick = () => step('motorC', 'cw');
+                document.querySelector('#stepCCWC').onclick = () => step('motorC', 'ccw');
 
                 socket.on('disconnect', () => {
                     // show the error message on server-side socket disconnect.
@@ -48,14 +51,19 @@
 
     <div id='ui'>
         <fieldset>
-            <legend>Motor 1</legend>
-            <button id="stepCW1">Step CW</button>
-            <button id="stepCCW1">Step CCW</button>
+            <legend>Motor A</legend>
+            <button id="stepCWA">Step CW</button>
+            <button id="stepCCWA">Step CCW</button>
         </fieldset>
         <fieldset>
-            <legend>Motor 2</legend>
-            <button id="stepCW2">Step CW</button>
-            <button id="stepCCW2">Step CCW</button>
+            <legend>Motor B</legend>
+            <button id="stepCWB">Step CW</button>
+            <button id="stepCCWB">Step CCW</button>
+        </fieldset>
+        <fieldset>
+            <legend>Motor C</legend>
+            <button id="stepCWC">Step CW</button>
+            <button id="stepCCWC">Step CCW</button>
         </fieldset>
     </div>
 </body>
