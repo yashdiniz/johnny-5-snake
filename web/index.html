@@ -5,7 +5,7 @@
             padding: 20px;
         }
     </style>
-    <script src="/socket.io.min.js"
+    <script src="/socket.io.min.js" 
         integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
         crossorigin="anonymous"></script>
     <script>
@@ -25,24 +25,34 @@
                     if (!locked) {
                         locked = true;
                         fetch('/rtt/' + Date.now())
-                        .then((res) => {
-                            socket.emit(`${motor}:step`, c);
-                            locked = false;
-                        });
+                            .then((res) => {
+                                socket.emit(`${motor}:step`, c);
+                                locked = false;
+                            });
                     }
                 }
 
-                // TODO: give keybind to the buttons!
-                // document.querySelector('#stepCWA').onclick = () => step('motorA', 'cw');
-                // document.querySelector('#stepCCWA').onclick = () => step('motorA', 'ccw');
-
-                // document.querySelector('#stepCWB').onclick = () => step('motorB', 'cw');
-                // document.querySelector('#stepCCWB').onclick = () => step('motorB', 'ccw');
-
-                // document.querySelector('#stepCWC').onclick = () => step('motorC', 'cw');
-                // document.querySelector('#stepCCWC').onclick = () => step('motorC', 'ccw');
-
-                
+                let key = 'KeyA', clockwise = false;
+                document.onkeydown = event => {
+                    switch (event.code) {
+                        case 'KeyA':
+                        case 'KeyB':
+                        case 'KeyC': {
+                            key = event.code.replace('Key', '');   // set the motor to key pressed
+                            document.querySelector("#key").textContent = key;
+                            break;
+                        }
+                        case 'Space': {
+                            clockwise = !clockwise;
+                            document.querySelector("#pol").textContent = clockwise ? 'cw' : 'ccw';
+                            break;
+                        }
+                        default: {
+                            console.log(new Date(), 'ignoring key pressed', event.code);
+                        }
+                    }
+                    step(`motor${key}`, clockwise ? 'cw' : 'ccw');
+                };
 
                 socket.on('disconnect', () => {
                     // show the error message on server-side socket disconnect.
@@ -61,4 +71,9 @@
 
     Using wasd keys with space bar keybindings.
     (TODO: Flesh this out!)
+
+    <p>
+        Current motor <span id="key"></span><br>
+        Current polarity <span id="pol"></span>
+    </p>
 </body>
