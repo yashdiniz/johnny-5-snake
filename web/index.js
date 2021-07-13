@@ -1,3 +1,8 @@
+/**
+ * This is the server side code!!
+ * Do not assume this is client side!
+ */
+
 const express = require('express')
 const path = require('path')
 const app = express()
@@ -28,12 +33,11 @@ board.on("ready", () => {
         console.log(new Date(), socket.id, 'connected:', socket.connected, 'at', socket.conn.remoteAddress);
 
         try {
-            // create scoket events for each motor in the array above.
-            for(let i = 0; i < motor.length; i++)
-                socket.on(motor[i].event, async (data) => {
-                    // console.log(new Date(), socket.id, motor[i].event, data);
-                    if (data === 'cw') await motor[i].motor.step(1);
-                    if (data === 'ccw') await motor[i].motor.step(-1);
+            // create socket events for each motor in the array above.
+            for(let m of motor)
+                socket.on(m.event, async (data) => {
+                    if (data === 'cw') await m.motor.step(1);
+                    if (data === 'ccw') await m.motor.step(-1);
                 });
         } catch(e) {
             console.error(e);
@@ -47,6 +51,10 @@ board.on("ready", () => {
     });
 
     app.use('/', express.static(__dirname));
+
+    app.use('/rtt/:time', (req, res) => {
+        res.end(req.params.time);   // used to obtain round trip time at client to prevent congestion of commands...
+    });
 
     server.listen(8080, () => {
         console.log('Listening now');
