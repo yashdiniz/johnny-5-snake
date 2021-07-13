@@ -14,25 +14,35 @@
             // start by hiding the error message
             document.querySelector('#error').style.display = 'none';
             // show the elements at half transparency, until page loaded.
-            document.querySelector('#ui').style.opacity = 0.5;
+            // document.querySelector('#ui').style.opacity = 0.5;
 
             socket.on('connect', (data) => {
                 // return page elements back to normal on successful connection.
-                document.querySelector('#ui').style.opacity = 1;
-                
+                // document.querySelector('#ui').style.opacity = 1;
+
+                let locked = false;   // creating a semaphore for preventing congestion
                 function step(motor, c) {
-                    socket.emit(`${motor}:step`, c);
+                    if (!locked) {
+                        locked = true;
+                        fetch('/rtt/' + Date.now())
+                        .then((res) => {
+                            socket.emit(`${motor}:step`, c);
+                            locked = false;
+                        });
+                    }
                 }
 
                 // TODO: give keybind to the buttons!
-                document.querySelector('#stepCWA').onclick = () => step('motorA', 'cw');
-                document.querySelector('#stepCCWA').onclick = () => step('motorA', 'ccw');
+                // document.querySelector('#stepCWA').onclick = () => step('motorA', 'cw');
+                // document.querySelector('#stepCCWA').onclick = () => step('motorA', 'ccw');
 
-                document.querySelector('#stepCWB').onclick = () => step('motorB', 'cw');
-                document.querySelector('#stepCCWB').onclick = () => step('motorB', 'ccw');
+                // document.querySelector('#stepCWB').onclick = () => step('motorB', 'cw');
+                // document.querySelector('#stepCCWB').onclick = () => step('motorB', 'ccw');
 
-                document.querySelector('#stepCWC').onclick = () => step('motorC', 'cw');
-                document.querySelector('#stepCCWC').onclick = () => step('motorC', 'ccw');
+                // document.querySelector('#stepCWC').onclick = () => step('motorC', 'cw');
+                // document.querySelector('#stepCCWC').onclick = () => step('motorC', 'ccw');
+
+                
 
                 socket.on('disconnect', () => {
                     // show the error message on server-side socket disconnect.
@@ -49,21 +59,6 @@
         <em>NOTE: Do ensure only one instance of this page is open!</em>
     </p>
 
-    <div id='ui'>
-        <fieldset>
-            <legend>Motor A</legend>
-            <button id="stepCWA">Step CW</button>
-            <button id="stepCCWA">Step CCW</button>
-        </fieldset>
-        <fieldset>
-            <legend>Motor B</legend>
-            <button id="stepCWB">Step CW</button>
-            <button id="stepCCWB">Step CCW</button>
-        </fieldset>
-        <fieldset>
-            <legend>Motor C</legend>
-            <button id="stepCWC">Step CW</button>
-            <button id="stepCCWC">Step CCW</button>
-        </fieldset>
-    </div>
+    Using wasd keys with space bar keybindings.
+    (TODO: Flesh this out!)
 </body>
