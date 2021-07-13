@@ -22,9 +22,10 @@ const board = new Board({
 
 board.on("ready", () => {
     console.log('Board ready');
-    const motor = [ { motor: new Motor(10, 9), event: 'motorA:step' }, 
-                    { motor: new Motor(12, 11), event: 'motorB:step' }, 
-                    { motor: new Motor(8, 7), event: 'motorC:step' } ];
+    const motor = [  
+        { motor: new Motor(7, 6), event: 'motorA:step' }, 
+        { motor: new Motor(5, 4), event: 'motorB:step' },
+        { motor: new Motor(3, 2), event: 'motorC:step' } ];
     let idConnected = ""; // holds the ID of the active room...
 
     io.on('connection', async socket => {
@@ -52,8 +53,8 @@ board.on("ready", () => {
 
     app.use('/', express.static(__dirname));
 
-    app.use('/rtt/:time', (req, res) => {
-        res.end(req.params.time);   // used to obtain round trip time at client to prevent congestion of commands...
+    app.get('/rtt/:time', (req, res) => {
+        res.send(req.params.time);   // used to obtain round trip time at client to prevent congestion of commands...
     });
 
     server.listen(8080, () => {
