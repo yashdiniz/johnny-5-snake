@@ -18,7 +18,8 @@
 
             socket.on('connect', (data) => {
                 // return page elements back to normal on successful connection.
-                // document.querySelector('#ui').style.opacity = 1;
+                // document.querySelector("#key").textContent = 'A';
+                // document.querySelector("#pol").textContent = 'ccw';
 
                 let locked = false;   // creating a semaphore for preventing congestion
                 function step(motor, c) {
@@ -32,27 +33,58 @@
                     }
                 }
 
-                let key = 'KeyA', clockwise = false;
+                // let key = 'KeyA', clockwise = false;             
+                // document.onkeydown = event => {
+                //     switch (event.code) {
+                //         case 'KeyA':
+                //         case 'KeyB':
+                //         case 'KeyC': {
+                //             key = event.code.replace('Key', '');   // set the motor to key pressed
+                //             document.querySelector("#key").textContent = key;
+                //             break;
+                //         }
+                //         case 'Space': {
+                //             clockwise = !clockwise;
+                //             document.querySelector("#pol").textContent = clockwise ? 'cw' : 'ccw';
+                //             break;
+                //         }
+                //         default: {
+                //             console.log(new Date(), 'ignoring key pressed', event.code);
+                //         }
+                //     }
+                //     step(`motor${key}`, clockwise ? 'cw' : 'ccw');
+                // };
+
+                const keys = [
+                    'KeyQ', 'KeyW', 'KeyE', // 8,  1,  2
+                    'KeyA', 'KeyS', 'KeyD', // 7,  o,  3
+                    'KeyZ', 'KeyX', 'KeyC'  // 6,  5,  4
+                ];
+                function keyToDirection(code) {
+                    return keys.indexOf(code) + 1;
+                }
                 document.onkeydown = event => {
-                    switch (event.code) {
-                        case 'KeyA':
-                        case 'KeyB':
-                        case 'KeyC': {
-                            key = event.code.replace('Key', '');   // set the motor to key pressed
-                            document.querySelector("#key").textContent = key;
-                            break;
-                        }
-                        case 'Space': {
-                            clockwise = !clockwise;
-                            document.querySelector("#pol").textContent = clockwise ? 'cw' : 'ccw';
-                            break;
-                        }
-                        default: {
-                            console.log(new Date(), 'ignoring key pressed', event.code);
-                        }
+                    let motors = [];
+                    switch (keyToDirection(event.code)) {
+                        case 1: 
+                        case 5: 
+                            motors = ['A', 'B', 'C']; break;
+
+                        case 2: 
+                        case 6: 
+                            motors = ['B', 'C', 'A']; break;
+
+                        case 3: 
+                        case 7: 
+                            motors = ['-', 'B', 'C']; break;
+
+                        case 4: 
+                        case 8: 
+                            motors = ['C', 'A', 'B']; break;
                     }
-                    step(`motor${key}`, clockwise ? 'cw' : 'ccw');
-                };
+
+                    // TODO: step!
+                }
 
                 socket.on('disconnect', () => {
                     // show the error message on server-side socket disconnect.
