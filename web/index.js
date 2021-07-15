@@ -21,7 +21,7 @@ const board = new Board({
 });
 
 board.on("ready", () => {
-    console.log('Board ready');
+    console.log(new Date(), 'Board ready');
     const motor = [  
         { motor: new Motor(7, 6), event: 'motorA:step' }, 
         { motor: new Motor(5, 4), event: 'motorB:step' },
@@ -58,6 +58,6 @@ board.on("ready", () => {
     });
 
     server.listen(8080, () => {
-        console.log('Listening now');
+        console.log(new Date(), 'Now listening for commands');
     });
 });
