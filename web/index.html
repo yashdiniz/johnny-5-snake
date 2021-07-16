@@ -90,6 +90,7 @@
                             case 10: // only intermediate link motor will operate on U and J
                                 document.querySelector("#key").textContent = event.code;
                                 await step(`motorIML`, clockwise ? 'cw' : 'ccw');
+                                locked = false; // unlock after operation
                                 return;
 
                             default: return;
