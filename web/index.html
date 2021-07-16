@@ -50,7 +50,7 @@
                 // };
 
                 const keys = [
-                    'KeyS', 'KeyW', 'KeyE', 'KeyD', 'KeyC', 'KeyX', 'KeyZ', 'KeyA', 'KeyQ',
+                    'KeyS', 'KeyW', 'KeyE', 'KeyD', 'KeyC', 'KeyX', 'KeyZ', 'KeyA', 'KeyQ', 'KeyU', 'KeyJ', 
                 ];
                 function keyToDirection(code) {
                     // console.log(new Date(), 'Key and axis:', code, keys.indexOf(code));
@@ -65,22 +65,32 @@
                             case 1: clockwise = true;
                             case 5:
                                 document.querySelector("#key").textContent = event.code;
-                                motors = ['A', 'B', 'C']; break;
+                                motors = ['A', 'B', 'C']; 
+                                break;
 
                             case 2: clockwise = true;
                             case 6:
                                 document.querySelector("#key").textContent = event.code;
-                                motors = ['B', 'C', 'A']; break;
+                                motors = ['B', 'C', 'A']; 
+                                break;
 
                             case 3: clockwise = true;
                             case 7:
                                 document.querySelector("#key").textContent = event.code;
-                                motors = ['-', 'B', 'C']; break;
+                                motors = ['-', 'B', 'C']; 
+                                break;
 
                             case 4: clockwise = true;
                             case 8:
                                 document.querySelector("#key").textContent = event.code;
-                                motors = ['C', 'A', 'B']; break;
+                                motors = ['C', 'A', 'B']; 
+                                break;
+
+                            case 9: clockwise = true;
+                            case 10: // only intermediate link motor will operate on U and J
+                                document.querySelector("#key").textContent = event.code;
+                                await step(`motorIML`, clockwise ? 'cw' : 'ccw');
+                                return;
 
                             default: return;
                         }

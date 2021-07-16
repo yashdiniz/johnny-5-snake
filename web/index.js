@@ -23,9 +23,11 @@ const board = new Board({
 board.on("ready", () => {
     console.log(new Date(), 'Board ready');
     const motor = [  
+        { motor: new Motor(9, 8), event: 'motorIML:step' },
         { motor: new Motor(7, 6), event: 'motorA:step' }, 
         { motor: new Motor(5, 4), event: 'motorB:step' },
-        { motor: new Motor(3, 2), event: 'motorC:step' } ];
+        { motor: new Motor(3, 2), event: 'motorC:step' },
+    ];
     let idConnected = ""; // holds the ID of the active room...
 
     io.on('connection', async socket => {
