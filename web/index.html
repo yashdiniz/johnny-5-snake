@@ -5,8 +5,7 @@
             padding: 20px;
         }
     </style>
-    <script src="/socket.io.min.js" 
-        integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
+    <script src="/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
         crossorigin="anonymous"></script>
     <script>
         var socket = io.connect('http://localhost:8080');
@@ -18,19 +17,12 @@
 
             socket.on('connect', (data) => {
                 // return page elements back to normal on successful connection.
-                // document.querySelector("#key").textContent = 'A';
-                // document.querySelector("#pol").textContent = 'ccw';
-
-                let locked = false;   // creating a semaphore for preventing congestion
-                function step(motor, c) {
-                    if (!locked) {
-                        locked = true;
-                        fetch('/rtt/' + Date.now())
-                            .then((res) => {
-                                socket.emit(`${motor}:step`, c);
-                                locked = false;
-                            });
-                    }
+                document.querySelector("#key").textContent = 'yet to press';
+                // let locked = false;   // creating a semaphore for preventing congestion
+                async function step(motor, c) {
+                    await fetch('/rtt/' + Date.now());  // wait for rtt to return
+                    socket.emit(`${motor}:step`, c);    // then emit signal
+                    return;
                 }
 
                 // let key = 'KeyA', clockwise = false;             
@@ -45,6 +37,7 @@
                 //         }
                 //         case 'Space': {
                 //             clockwise = !clockwise;
+                //             key = 'Space';
                 //             document.querySelector("#pol").textContent = clockwise ? 'cw' : 'ccw';
                 //             break;
                 //         }
@@ -52,38 +45,53 @@
                 //             console.log(new Date(), 'ignoring key pressed', event.code);
                 //         }
                 //     }
-                //     step(`motor${key}`, clockwise ? 'cw' : 'ccw');
+                //     if (key !== 'Space')
+                //         step(`motor${key}`, clockwise ? 'cw' : 'ccw');
                 // };
 
                 const keys = [
-                    'KeyQ', 'KeyW', 'KeyE', // 8,  1,  2
-                    'KeyA', 'KeyS', 'KeyD', // 7,  o,  3
-                    'KeyZ', 'KeyX', 'KeyC'  // 6,  5,  4
+                    'KeyS', 'KeyW', 'KeyE', 'KeyD', 'KeyC', 'KeyX', 'KeyZ', 'KeyA', 'KeyQ',
                 ];
                 function keyToDirection(code) {
-                    return keys.indexOf(code) + 1;
+                    // console.log(new Date(), 'Key and axis:', code, keys.indexOf(code));
+                    return keys.indexOf(code);
                 }
-                document.onkeydown = event => {
-                    let motors = [];
-                    switch (keyToDirection(event.code)) {
-                        case 1: 
-                        case 5: 
-                            motors = ['A', 'B', 'C']; break;
+                let locked = false;
+                document.onkeydown = async event => {
+                    if (!locked) {
+                        locked = true;
+                        let motors = [], clockwise = false;
+                        switch (keyToDirection(event.code)) {
+                            case 1: clockwise = true;
+                            case 5:
+                                document.querySelector("#key").textContent = event.code;
+                                motors = ['A', 'B', 'C']; break;
 
-                        case 2: 
-                        case 6: 
-                            motors = ['B', 'C', 'A']; break;
+                            case 2: clockwise = true;
+                            case 6:
+                                document.querySelector("#key").textContent = event.code;
+                                motors = ['B', 'C', 'A']; break;
 
-                        case 3: 
-                        case 7: 
-                            motors = ['-', 'B', 'C']; break;
+                            case 3: clockwise = true;
+                            case 7:
+                                document.querySelector("#key").textContent = event.code;
+                                motors = ['-', 'B', 'C']; break;
 
-                        case 4: 
-                        case 8: 
-                            motors = ['C', 'A', 'B']; break;
+                            case 4: clockwise = true;
+                            case 8:
+                                document.querySelector("#key").textContent = event.code;
+                                motors = ['C', 'A', 'B']; break;
+
+                            default: return;
+                        }
+
+                        if (motors[0] !== '-') {
+                            await step(`motor${motors[0]}`, clockwise ? 'cw' : 'ccw');
+                            step(`motor${motors[0]}`, clockwise ? 'cw' : 'ccw');
+                        }
+                        step(`motor${motors[1]}`, clockwise ? 'cw' : 'ccw');
+                        step(`motor${motors[2]}`, clockwise ? 'cw' : 'ccw').then(o => locked = false);
                     }
-
-                    // TODO: step!
                 }
 
                 socket.on('disconnect', () => {
@@ -101,11 +109,10 @@
         <em>NOTE: Do ensure only one instance of this page is open!</em>
     </p>
 
-    Using wasd keys with space bar keybindings.
-    (TODO: Flesh this out!)
+    Using qwedcxza keys with keyS keybindings.
+    <img src="/mdewsp.png" width="240" alt="Diagram showing key to direction mapping." />
 
     <p>
-        Current motor <span id="key"></span><br>
-        Current polarity <span id="pol"></span>
+        Current direction: <span id="key"></span><br>
     </p>
 </body>
