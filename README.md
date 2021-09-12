@@ -1,5 +1,7 @@
 # Johnny five controlling a snake arm
 
+> This repository is now archived.
+
 Final year project controlling a snake arm.
 
 The snake arm uses stepper motors (afaik)
